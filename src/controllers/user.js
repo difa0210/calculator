@@ -1,10 +1,10 @@
 // import model here
-const { User } = require("../../models");
+const { user } = require("../../models");
 
 exports.addUsers = async (req, res) => {
   // code here
   try {
-    await User.create(req.body);
+    await user.create(req.body);
     res.send({
       status: "success",
       message: "add user success",
@@ -20,7 +20,7 @@ exports.addUsers = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const users = await user.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
@@ -45,7 +45,7 @@ exports.getUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const data = await User.findAll({
+    const data = await user.findAll({
       where: {
         id,
       },
@@ -73,7 +73,7 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await User.update(req.body, {
+    await user.update(req.body, {
       where: {
         id,
       },
@@ -97,7 +97,7 @@ exports.deleteUser = async (req, res) => {
   // code here
   try {
     const { id } = req.params;
-    await User.destroy({
+    await user.destroy({
       where: {
         id,
       },

@@ -1,4 +1,7 @@
 "use strict";
+
+const { Model } = require("sequelize/types");
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("userOrders", {
@@ -10,15 +13,24 @@ module.exports = {
       },
       fullName: {
         type: Sequelize.STRING,
+        references: {
+          model: "user",
+          key: "fullName",
+        },
+        onUpdate: CASCADE,
+        onDelete: CASCADE,
       },
       location: {
         type: Sequelize.STRING,
       },
       email: {
         type: Sequelize.STRING,
-      },
-      status: {
-        type: Sequelize.STRING,
+        references: {
+          model: "user",
+          key: "email",
+        },
+        onUpdate: CASCADE,
+        onDelete: CASCADE,
       },
       createdAt: {
         allowNull: false,

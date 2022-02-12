@@ -10,24 +10,12 @@ module.exports = {
       },
       userOrder: {
         type: Sequelize.STRING,
-        references: {
-          model: "UserOrder",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelte: "CASCADE",
       },
       status: {
         type: Sequelize.STRING,
       },
       order: {
         type: Sequelize.STRING,
-        references: {
-          model: "Order",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelte: "CASCADE",
       },
 
       createdAt: {

@@ -1,13 +1,13 @@
 // import model here
-const { user } = require("../../models");
+const { topping } = require("../../models");
 
-exports.addUsers = async (req, res) => {
+exports.addTopping = async (req, res) => {
   // code here
   try {
-    await user.create(req.body);
+    await topping.create(req.body);
     res.send({
       status: "success",
-      message: "add user success",
+      message: "add topping success",
     });
   } catch (error) {
     console.log(error);
@@ -18,18 +18,18 @@ exports.addUsers = async (req, res) => {
   }
 };
 
-exports.getUsers = async (req, res) => {
+exports.getToppings = async (req, res) => {
   try {
-    const users = await user.findAll({
+    const toppings = await topping.findAll({
       attributes: {
-        exclude: ["password", "createdAt", "updatedAt"],
+        exclude: ["createdAt", "updatedAt"],
       },
     });
 
     res.send({
       status: "success",
       data: {
-        users,
+        toppings,
       },
     });
   } catch (error) {
@@ -41,11 +41,11 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-exports.getUser = async (req, res) => {
+exports.getTopping = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const data = await user.findAll({
+    const data = await topping.findAll({
       where: {
         id,
       },
@@ -57,7 +57,7 @@ exports.getUser = async (req, res) => {
     res.send({
       status: "success",
       data: {
-        user: data,
+        topping: data,
       },
     });
   } catch (error) {
@@ -69,11 +69,11 @@ exports.getUser = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
+exports.updateTopping = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await user.update(req.body, {
+    await topping.update(req.body, {
       where: {
         id,
       },
@@ -81,7 +81,7 @@ exports.updateUser = async (req, res) => {
 
     res.send({
       status: "success",
-      message: `Update user id: ${id} finished`,
+      message: `Update topping id: ${id} finished`,
       data: req.body,
     });
   } catch (error) {
@@ -93,11 +93,11 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
+exports.deleteTopping = async (req, res) => {
   // code here
   try {
     const { id } = req.params;
-    await user.destroy({
+    await topping.destroy({
       where: {
         id,
       },

@@ -17,11 +17,8 @@ module.exports = {
       image: {
         type: Sequelize.STRING,
       },
-      quality: {
+      quantity: {
         type: Sequelize.INTEGER,
-      },
-      status: {
-        type: Sequelize.STRING,
       },
       createdAt: {
         allowNull: false,

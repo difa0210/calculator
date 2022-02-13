@@ -1,10 +1,12 @@
 const joi = require("joi");
+const { Op } = require("sequelize");
 const {
   transaction,
   transactionDetail,
   transactionDetailTopping,
   user,
   topping,
+  product,
 } = require("../../models");
 const { transactionStatus } = require("../helpers/constans");
 
@@ -34,65 +36,37 @@ exports.addTransaction = async (req, res) => {
       status: transactionStatus.WAITING_APPROVE,
     });
 
-    body.transactionDetails.forEach(async (el) => {
-      const newTransactionDetail = await transactionDetail.create({
-        productId: el.productId,
-        qty: el.qty,
-        transactionId: newTransaction.id,
+    for (let i = 0; i < body.transactionDetails.length; i++) {
+      const item = body.transactionDetails[i];
+      const p = await product.findOne({ where: { id: item.productId } });
+      const t = await topping.findAll({
+        where: { id: { [Op.in]: item.toppingIds } },
       });
 
-      el.toppingIds.forEach(async (tp) => {
+      const totalPrice =
+        p.price +
+        t.reduce((a, b) => {
+          return a + b.price;
+        }, 0);
+
+      const newTransactionDetail = await transactionDetail.create({
+        productId: item.productId,
+        qty: item.qty,
+        transactionId: newTransaction.id,
+        price: totalPrice,
+      });
+
+      for (let j = 0; j < item.toppingIds.length; j++) {
         await transactionDetailTopping.create({
-          toppingId: tp,
+          toppingId: item.toppingIds[j],
           transactionDetailId: newTransactionDetail.id,
         });
-      });
-    });
-
-    const transact = await transaction.findOne({
-      attributes: {
-        exclude: ["createdAt", "updatedAt"],
+      }
+    }
+    const getTransaction = await transaction.findOne({
+      where: {
+        id: newTransaction.id,
       },
-      where: { id: newTransaction.id },
-      include: [
-        {
-          model: user,
-          as: "user",
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "password"],
-          },
-        },
-        {
-          model: transactionDetail,
-          as: "transactionDetail",
-          attributes: {
-            exclude: ["createdAt", "updatedAt"],
-          },
-        },
-      ],
-    });
-
-    res.status(201).send({
-      status: "success",
-      data: {
-        transact,
-      },
-      message: "Transaction Created!",
-    });
-  } catch (error) {
-    console.log(error);
-    res.send({
-      status: "failed",
-      message: "server error",
-    });
-  }
-
-  res.status(200).send();
-};
-
-exports.getTransactions = async (req, res) => {
-  try {
-    const allTransactions = await transaction.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
@@ -110,15 +84,124 @@ exports.getTransactions = async (req, res) => {
           attributes: {
             exclude: ["createdAt", "updatedAt"],
           },
+          include: [
+            {
+              model: product,
+              as: "product",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: transactionDetailTopping,
+              as: "transactionDetailTopping",
+              include: [
+                {
+                  model: topping,
+                  as: "topping",
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                },
+              ],
+            },
+          ],
         },
       ],
     });
 
     res.send({
+      status: "success",
+      data: {
+        transaction: {
+          id: getTransaction.id,
+          userOrder: getTransaction.user,
+          status: getTransaction.status,
+          order: getTransaction.transactionDetail.map((x) => ({
+            price: x.price,
+            ...x.product.dataValues,
+            topping: x.transactionDetailTopping.map((xx) => ({
+              ...xx.topping.dataValues,
+            })),
+          })),
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "server error",
+    });
+  }
+
+  res.status(200).send();
+};
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const allTransactions = await transaction.findAll({
+      where: {
+        userId: req.params.userid,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "userId"],
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: transactionDetail,
+          as: "transactionDetail",
+          attributes: {
+            exclude: [
+              "createdAt",
+              "updatedAt",
+              "id",
+              "transactionId",
+              "productId",
+            ],
+          },
+          include: [
+            {
+              model: product,
+              as: "product",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: transactionDetailTopping,
+              as: "transactionDetailTopping",
+              attributes: {
+                exclude: ["createdAt", "updatedAt", "id", "toppingId", ""],
+              },
+              include: [
+                {
+                  model: topping,
+                  as: "topping",
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(201).send({
+      status: "success",
       data: {
         allTransactions,
       },
-      status: "success",
+      message: "get transaction success",
     });
   } catch (error) {
     console.log(error);
@@ -132,7 +215,7 @@ exports.getTransactions = async (req, res) => {
 exports.getTransaction = async (req, res) => {
   try {
     const { id } = req.params;
-    const Transaction = await transaction.findAll({
+    const Transaction = await transaction.findOne({
       where: {
         id,
       },
@@ -153,15 +236,49 @@ exports.getTransaction = async (req, res) => {
           attributes: {
             exclude: ["createdAt", "updatedAt"],
           },
+          include: [
+            {
+              model: product,
+              as: "product",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: transactionDetailTopping,
+              as: "transactionDetailTopping",
+              include: [
+                {
+                  model: topping,
+                  as: "topping",
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                },
+              ],
+            },
+          ],
         },
       ],
     });
 
-    res.send({
+    res.status(201).send({
       status: "success",
       data: {
-        transaction: Transaction,
+        transaction: {
+          id: Transaction.id,
+          userOrder: Transaction.user,
+          status: Transaction.status,
+          order: Transaction.transactionDetail.map((x) => ({
+            price: x.price,
+            ...x.product.dataValues,
+            topping: x.transactionDetailTopping.map((xx) => ({
+              ...xx.topping.dataValues,
+            })),
+          })),
+        },
       },
+      message: "get transaction success",
     });
   } catch (error) {
     console.log(error);
@@ -175,14 +292,9 @@ exports.updateTransaction = async (req, res) => {
   try {
     const { id } = req.params;
     const body = req.body;
-    const file = req.file.filename;
-    const data = { body, file };
     await transaction.update(
       {
-        ...data,
-        title: req.body.title,
-        price: req.body.price,
-        image: req.file.filename,
+        status: body.status,
       },
       {
         where: {
@@ -191,11 +303,62 @@ exports.updateTransaction = async (req, res) => {
       }
     );
 
-    const updateTransaction = await product.findOne({ where: { id } });
+    const updateTransaction = await transaction.findOne({
+      where: { id },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: transactionDetail,
+          as: "transactionDetail",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: product,
+              as: "product",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: transactionDetailTopping,
+              as: "transactionDetailTopping",
+              include: [
+                {
+                  model: topping,
+                  as: "topping",
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
     res.status(201).send({
       status: "success",
       data: {
-        updateTransaction,
+        transaction: {
+          id: updateTransaction.id,
+          userOrder: updateTransaction.user,
+          status: updateTransaction.status,
+          order: updateTransaction.transactionDetail.map((x) => ({
+            price: x.price,
+            ...x.product.dataValues,
+            topping: x.transactionDetailTopping.map((xx) => ({
+              ...xx.topping.dataValues,
+            })),
+          })),
+        },
       },
       message: "update transaction success",
     });
@@ -217,7 +380,60 @@ exports.deleteTransaction = async (req, res) => {
         id,
       },
     });
+    res.send({
+      status: "delete success",
+    });
   } catch (err) {
     console.log(err);
+  }
+};
+
+exports.userTransactions = async (req, res) => {
+  try {
+    const allTransactions = await transaction.findAll({
+      where: {
+        userId: req.user.id,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: transactionDetail,
+          as: "transactionDetail",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          include: [
+            { model: product, as: "product" },
+            {
+              model: transactionDetailTopping,
+              as: "transactionDetailTopping",
+              include: [{ model: topping, as: "topping" }],
+            },
+          ],
+        },
+      ],
+    });
+
+    res.send({
+      data: {
+        allTransactions,
+      },
+      status: "success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "Server Error",
+    });
   }
 };

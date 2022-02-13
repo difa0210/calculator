@@ -15,10 +15,16 @@ module.exports = (sequelize, DataTypes) => {
           name: "transactionId",
         },
       });
-      transactionDetail.belongsTo(models.transaction, {
+      transactionDetail.belongsTo(models.product, {
         as: "product",
         foreignKey: {
           name: "productId",
+        },
+      });
+      transactionDetail.hasMany(models.transactionDetailTopping, {
+        as: "transactionDetailTopping",
+        foreignKey: {
+          name: "transactionDetailId",
         },
       });
     }

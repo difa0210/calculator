@@ -14,8 +14,8 @@ module.exports = {
           model: "transactionDetails",
           key: "id",
         },
-        // onUpdate: "CASCADE",
-        // onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       toppingId: {
         type: Sequelize.INTEGER,
@@ -23,8 +23,8 @@ module.exports = {
           model: "toppings",
           key: "id",
         },
-        // onUpdate: "CASCADE",
-        // onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       createdAt: {
         allowNull: false,

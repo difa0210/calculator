@@ -14,8 +14,8 @@ module.exports = {
           model: "transactions",
           key: "id",
         },
-        // onUpdate: "CASCADE",
-        // onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       productId: {
         type: Sequelize.INTEGER,
@@ -23,8 +23,8 @@ module.exports = {
           model: "products",
           key: "id",
         },
-        // onUpdate: "CASCADE",
-        // onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       qty: {
         type: Sequelize.INTEGER,

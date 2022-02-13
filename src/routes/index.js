@@ -31,6 +31,8 @@ const {
   getTransactions,
   deleteTransaction,
   getTransaction,
+  userTransactions,
+  updateTransaction,
 } = require("../controllers/transaction");
 
 // Route
@@ -60,11 +62,11 @@ router.delete("/topping/:id", auth, deleteTopping);
 
 // add route transaction here
 router.post("/transaction", auth, addTransaction);
-router.get("/transactions", auth, getTransactions);
+router.get("/transactions/:userid", auth, getTransactions);
 router.get("/transaction/:id", auth, getTransaction);
-// router.patch("/transaction/:id", auth, updateTransaction);
+router.patch("/transaction/:id", auth, updateTransaction);
 router.delete("/transaction/:id", auth, deleteTransaction);
-// router.get("/transaction/:id", auth, myTransaction);
+router.get("/my-transactions", auth, userTransactions);
 
 // add route topping here
 // router.get("/user/:id", getUser);

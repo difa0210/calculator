@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
           name: "transactionDetailId",
         },
       });
-      transactionDetailTopping.belongsTo(models.transactionDetail, {
+      transactionDetailTopping.belongsTo(models.topping, {
         as: "topping",
         foreignKey: {
           name: "toppingId",

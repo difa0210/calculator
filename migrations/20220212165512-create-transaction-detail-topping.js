@@ -1,24 +1,30 @@
 "use strict";
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("toppings", {
+    await queryInterface.createTable("transactionDetailToppings", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      title: {
-        type: Sequelize.STRING,
-      },
-      price: {
+      transactionDetailId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "transactionDetails",
+          key: "id",
+        },
+        // onUpdate: "CASCADE",
+        // onDelete: "CASCADE",
       },
-      image: {
-        type: Sequelize.STRING,
-      },
-      quantity: {
+      toppingId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "toppings",
+          key: "id",
+        },
+        // onUpdate: "CASCADE",
+        // onDelete: "CASCADE",
       },
       createdAt: {
         allowNull: false,
@@ -31,6 +37,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("toppings");
+    await queryInterface.dropTable("transactionDetailToppings");
   },
 };

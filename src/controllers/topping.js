@@ -4,9 +4,20 @@ const { topping } = require("../../models");
 exports.addTopping = async (req, res) => {
   // code here
   try {
-    await topping.create(req.body);
-    res.send({
+    const body = req.body;
+    const file = req.file.filename;
+    const data = { body, file };
+    const newTopping = await topping.create({
+      ...data,
+      title: req.body.title,
+      price: req.body.price,
+      image: req.file.filename,
+    });
+    res.status(201).send({
       status: "success",
+      data: {
+        newTopping,
+      },
       message: "add topping success",
     });
   } catch (error) {
@@ -20,7 +31,7 @@ exports.addTopping = async (req, res) => {
 
 exports.getToppings = async (req, res) => {
   try {
-    const toppings = await topping.findAll({
+    const allTopping = await topping.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
@@ -29,7 +40,7 @@ exports.getToppings = async (req, res) => {
     res.send({
       status: "success",
       data: {
-        toppings,
+        allTopping,
       },
     });
   } catch (error) {
@@ -72,23 +83,36 @@ exports.getTopping = async (req, res) => {
 exports.updateTopping = async (req, res) => {
   try {
     const { id } = req.params;
-
-    await topping.update(req.body, {
-      where: {
-        id,
+    const body = req.body;
+    const file = req.file.filename;
+    const data = { body, file };
+    await topping.update(
+      {
+        ...data,
+        title: req.body.title,
+        price: req.body.price,
+        image: req.file.filename,
       },
-    });
+      {
+        where: {
+          id,
+        },
+      }
+    );
 
-    res.send({
+    const updateTopping = await topping.findOne({ where: { id } });
+    res.status(201).send({
       status: "success",
-      message: `Update topping id: ${id} finished`,
-      data: req.body,
+      data: {
+        updateTopping,
+      },
+      message: "update topping success",
     });
   } catch (error) {
     console.log(error);
     res.send({
       status: "failed",
-      message: "Server Error",
+      message: "server error",
     });
   }
 };

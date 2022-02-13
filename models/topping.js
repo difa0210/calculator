@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      topping.hasMany(models.transactionDetailTopping, {
+        as: "transactionDetailTopping",
+        foreignKey: {
+          name: "toppingId",
+        },
+      });
     }
   }
   topping.init(
@@ -16,7 +22,6 @@ module.exports = (sequelize, DataTypes) => {
       title: DataTypes.STRING,
       price: DataTypes.INTEGER,
       image: DataTypes.STRING,
-      quantity: DataTypes.INTEGER,
     },
     {
       sequelize,

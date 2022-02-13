@@ -1,36 +1,21 @@
 "use strict";
-
-const { Model } = require("sequelize/types");
-
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("userOrders", {
+    await queryInterface.createTable("toppings", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      fullName: {
-        type: Sequelize.STRING,
-        references: {
-          model: "user",
-          key: "fullName",
-        },
-        onUpdate: CASCADE,
-        onDelete: CASCADE,
-      },
-      location: {
+      title: {
         type: Sequelize.STRING,
       },
-      email: {
+      price: {
+        type: Sequelize.INTEGER,
+      },
+      image: {
         type: Sequelize.STRING,
-        references: {
-          model: "user",
-          key: "email",
-        },
-        onUpdate: CASCADE,
-        onDelete: CASCADE,
       },
       createdAt: {
         allowNull: false,
@@ -43,6 +28,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("userOrders");
+    await queryInterface.dropTable("toppings");
   },
 };

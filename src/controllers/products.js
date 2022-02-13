@@ -1,6 +1,6 @@
 // import model here
 
-const { products } = require("../../models");
+const { product } = require("../../models");
 
 exports.addProduct = async (req, res) => {
   // code here
@@ -8,12 +8,11 @@ exports.addProduct = async (req, res) => {
     const body = req.body;
     const file = req.file.filename;
     const data = { body, file };
-    const newProduct = await products.create({
+    const newProduct = await product.create({
       ...data,
       title: req.body.title,
       price: req.body.price,
       image: req.file.filename,
-      quantity: req.body.quantity,
     });
     res.status(201).send({
       status: "success",
@@ -33,7 +32,7 @@ exports.addProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    const allProducts = await products.findAll({
+    const allProducts = await product.findAll({
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
@@ -58,7 +57,7 @@ exports.getProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const data = await products.findAll({
+    const data = await product.findAll({
       where: {
         id,
       },
@@ -85,33 +84,36 @@ exports.getProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
-    let updateProduct = await products.update(req.body, {
-      where: {
-        id,
+    const body = req.body;
+    const file = req.file.filename;
+    const data = { body, file };
+    await product.update(
+      {
+        ...data,
+        title: req.body.title,
+        price: req.body.price,
+        image: req.file.filename,
       },
-    });
+      {
+        where: {
+          id,
+        },
+      }
+    );
 
-    updateProduct = {
-      title: req.body.title,
-      price: req.body.price,
-      image: updateProduct.image,
-      quantity: req.body.quantity,
-    };
-    const data = await products.findOne({
-      where: { id },
-    });
-    res.send({
+    const updateProduct = await product.findOne({ where: { id } });
+    res.status(201).send({
       status: "success",
-      message: `Update product id: ${id} finished`,
-      data: data,
-      ...updateProduct,
+      data: {
+        updateProduct,
+      },
+      message: "update product success",
     });
   } catch (error) {
     console.log(error);
     res.send({
       status: "failed",
-      message: "Server Error",
+      message: "server error",
     });
   }
 };
@@ -120,7 +122,7 @@ exports.deleteProduct = async (req, res) => {
   // code here
   try {
     const { id } = req.params;
-    await products.destroy({
+    await product.destroy({
       where: {
         id,
       },

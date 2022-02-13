@@ -24,14 +24,14 @@ const {
 } = require("../controllers/topping");
 
 // Controller User
+const { getUsers, deleteUser } = require("../controllers/user");
+
 const {
-  addUsers,
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser,
-} = require("../controllers/user");
-const req = require("express/lib/request");
+  addTransaction,
+  getTransactions,
+  deleteTransaction,
+  getTransaction,
+} = require("../controllers/transaction");
 
 // Route
 // add route register here
@@ -41,25 +41,30 @@ router.post("/register", register);
 router.post("/login", login);
 
 // add route user here
-router.post("/user", addUsers);
 router.get("/users", getUsers);
-router.get("/user/:id", getUser);
-router.patch("/user/:id", updateUser);
 router.delete("/user/:id", deleteUser);
 
 // add route products here
-router.post("/product", uploadFile("image"), addProduct);
+router.post("/product", auth, uploadFile("image"), addProduct);
 router.get("/products", getProducts);
 router.get("/product/:id", getProduct);
-router.patch("/product/:id", updateProduct);
+router.patch("/product/:id", auth, uploadFile("image"), updateProduct);
 router.delete("/product/:id", auth, deleteProduct);
 
 // add route topping here
-router.post("/topping", addTopping);
+router.post("/topping", auth, uploadFile("image"), addTopping);
 router.get("/toppings", getToppings);
 router.get("/topping/:id", getTopping);
-router.patch("/topping/:id", updateTopping);
-router.delete("/topping/:id", deleteTopping);
+router.patch("/topping/:id", auth, uploadFile("image"), updateTopping);
+router.delete("/topping/:id", auth, deleteTopping);
+
+// add route transaction here
+router.post("/transaction", auth, addTransaction);
+router.get("/transactions", auth, getTransactions);
+router.get("/transaction/:id", auth, getTransaction);
+// router.patch("/transaction/:id", auth, updateTransaction);
+router.delete("/transaction/:id", auth, deleteTransaction);
+// router.get("/transaction/:id", auth, myTransaction);
 
 // add route topping here
 // router.get("/user/:id", getUser);

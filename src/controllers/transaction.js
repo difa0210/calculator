@@ -145,7 +145,7 @@ exports.getTransactions = async (req, res) => {
         userId: req.params.userid,
       },
       attributes: {
-        exclude: ["createdAt", "updatedAt", "userId"],
+        exclude: ["createdAt", "updatedAt"],
       },
       include: [
         {
@@ -159,13 +159,7 @@ exports.getTransactions = async (req, res) => {
           model: transactionDetail,
           as: "transactionDetail",
           attributes: {
-            exclude: [
-              "createdAt",
-              "updatedAt",
-              "id",
-              "transactionId",
-              "productId",
-            ],
+            exclude: ["createdAt", "updatedAt"],
           },
           include: [
             {
@@ -179,7 +173,7 @@ exports.getTransactions = async (req, res) => {
               model: transactionDetailTopping,
               as: "transactionDetailTopping",
               attributes: {
-                exclude: ["createdAt", "updatedAt", "id", "toppingId", ""],
+                exclude: ["createdAt", "updatedAt"],
               },
               include: [
                 {
@@ -199,9 +193,19 @@ exports.getTransactions = async (req, res) => {
     res.status(201).send({
       status: "success",
       data: {
-        allTransactions,
+        transaction: allTransactions.map((item) => ({
+          Id: item.userId,
+          userOrder: item.user,
+          status: item.status,
+          order: item.transactionDetail.map((x) => ({
+            price: x.price,
+            ...x.product.dataValues,
+            topping: x.transactionDetailTopping.map((xx) => ({
+              ...xx.topping.dataValues,
+            })),
+          })),
+        })),
       },
-      message: "get transaction success",
     });
   } catch (error) {
     console.log(error);
@@ -412,22 +416,50 @@ exports.userTransactions = async (req, res) => {
             exclude: ["createdAt", "updatedAt"],
           },
           include: [
-            { model: product, as: "product" },
+            {
+              model: product,
+              as: "product",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
             {
               model: transactionDetailTopping,
               as: "transactionDetailTopping",
-              include: [{ model: topping, as: "topping" }],
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+              include: [
+                {
+                  model: topping,
+                  as: "topping",
+                  attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                  },
+                },
+              ],
             },
           ],
         },
       ],
     });
 
-    res.send({
-      data: {
-        allTransactions,
-      },
+    res.status(201).send({
       status: "success",
+      data: {
+        transaction: allTransactions.map((item) => ({
+          Id: item.userId,
+          userOrder: item.user,
+          status: item.status,
+          order: item.transactionDetail.map((x) => ({
+            price: x.price,
+            ...x.product.dataValues,
+            topping: x.transactionDetailTopping.map((xx) => ({
+              ...xx.topping.dataValues,
+            })),
+          })),
+        })),
+      },
     });
   } catch (error) {
     console.log(error);

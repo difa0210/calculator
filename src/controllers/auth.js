@@ -25,6 +25,7 @@ exports.register = async (req, res) => {
       fullName: req.body.fullName,
       email: req.body.email,
       password: hashedPassword,
+      role: "",
     });
 
     const SECRET_KEY = "Difa Tampan";
@@ -103,6 +104,44 @@ exports.login = async (req, res) => {
           fullName: userExist.fullName,
           email: userExist.email,
           token,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "Server Error",
+    });
+  }
+};
+
+exports.checkAuth = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+    const data = await user.findOne({
+      where: {
+        id,
+      },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+    });
+
+    if (!data) {
+      return res.status(404).send({
+        status: "failed",
+      });
+    }
+    res.send({
+      status: "success",
+      data: {
+        user: {
+          id: data.id,
+          name: data.fullName,
+          email: data.email,
+          role: data.role,
         },
       },
     });

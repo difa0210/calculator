@@ -198,11 +198,11 @@ exports.getTransactions = async (req, res) => {
           userOrder: item.user,
           status: item.status,
           order: item.transactionDetail.map((x) => ({
-            price: x.price,
             ...x.product.dataValues,
             topping: x.transactionDetailTopping.map((xx) => ({
               ...xx.topping.dataValues,
             })),
+            totalPrice: x.price,
           })),
         })),
       },
@@ -274,11 +274,11 @@ exports.getTransaction = async (req, res) => {
           userOrder: Transaction.user,
           status: Transaction.status,
           order: Transaction.transactionDetail.map((x) => ({
-            price: x.price,
             ...x.product.dataValues,
             topping: x.transactionDetailTopping.map((xx) => ({
               ...xx.topping.dataValues,
             })),
+            totalPrice: x.price,
           })),
         },
       },
@@ -452,11 +452,11 @@ exports.userTransactions = async (req, res) => {
           userOrder: item.user,
           status: item.status,
           order: item.transactionDetail.map((x) => ({
-            price: x.price,
             ...x.product.dataValues,
             topping: x.transactionDetailTopping.map((xx) => ({
               ...xx.topping.dataValues,
             })),
+            totalPrice: x.price,
           })),
         })),
       },

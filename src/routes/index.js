@@ -4,7 +4,7 @@ const { auth } = require("../middlewares/auth");
 const { uploadFile } = require("../middlewares/uploadFile");
 
 // Controller Register Login
-const { register, login } = require("../controllers/auth");
+const { register, login, checkAuth } = require("../controllers/auth");
 // Controller Products
 const {
   addProduct,
@@ -34,13 +34,13 @@ const {
   userTransactions,
   updateTransaction,
 } = require("../controllers/transaction");
+const { addCart } = require("../controllers/cart");
 
 // Route
-// add route register here
+// add route register, login, checkAuth here
 router.post("/register", register);
-
-// add route login here
 router.post("/login", login);
+router.get("/check-auth", auth, checkAuth);
 
 // add route user here
 router.get("/users", getUsers);
@@ -68,8 +68,7 @@ router.patch("/transaction/:id", auth, updateTransaction);
 router.delete("/transaction/:id", auth, deleteTransaction);
 router.get("/my-transactions", auth, userTransactions);
 
-// add route topping here
-// router.get("/user/:id", getUser);
-// router.patch("/user/:id", updateUser);
+// add route cart here
+router.post("/cart", auth, addCart);
 
 module.exports = router;

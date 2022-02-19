@@ -1,38 +1,31 @@
 "use strict";
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("transactionDetails", {
+    await queryInterface.createTable("CartToppings", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      transactionId: {
+      cartId: {
         type: Sequelize.INTEGER,
         references: {
-          model: "transactions",
+          model: "carts",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      productId: {
+      toppingId: {
         type: Sequelize.INTEGER,
         references: {
-          model: "products",
+          model: "toppings",
           key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      qty: {
-        type: Sequelize.INTEGER,
-      },
-      price: {
-        type: Sequelize.INTEGER,
-      },
-
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -44,12 +37,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("transactionDetails");
+    await queryInterface.dropTable("CartToppings");
   },
 };
-
-cart;
-id, userId, productId;
-
-carttopping;
-id, cartId, toppingId;

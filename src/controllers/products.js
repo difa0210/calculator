@@ -57,7 +57,7 @@ exports.getProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const data = await product.findAll({
+    const data = await product.findOne({
       where: {
         id,
       },

@@ -65,7 +65,7 @@ exports.getTopping = async (req, res) => {
       },
     });
 
-    res.send({
+    res.status(201).send({
       status: "success",
       data: {
         topping: data,

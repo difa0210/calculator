@@ -22,12 +22,24 @@ module.exports = (sequelize, DataTypes) => {
           name: "transactionId",
         },
       });
+
+      // transaction.hasMany(models.Cart, {
+      //   as: "Cart",
+      //   foreignKey: {
+      //     name: "id",
+      //   },
+      // });
     }
   }
   transaction.init(
     {
       userId: DataTypes.INTEGER,
       status: DataTypes.STRING,
+      // name: DataTypes.STRING,
+      // email: DataTypes.STRING,
+      // phone: DataTypes.INTEGER,
+      // posCode: DataTypes.INTEGER,
+      // address: DataTypes.STRING,
     },
     {
       sequelize,

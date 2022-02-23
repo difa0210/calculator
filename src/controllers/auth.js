@@ -26,6 +26,7 @@ exports.register = async (req, res) => {
       email: req.body.email,
       password: hashedPassword,
       role: "",
+      image: "",
     });
 
     const SECRET_KEY = "Difa Tampan";

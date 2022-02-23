@@ -7,17 +7,152 @@ const {
   user,
   topping,
   product,
+  Cart,
+  CartTopping,
 } = require("../../models");
+const cart = require("../../models/cart");
+
 const { transactionStatus } = require("../helpers/constans");
+
+// exports.addTransaction = async (req, res) => {
+//   const schema = joi.object({
+//     transactionDetails: joi
+//       .array()
+//       .items({
+//         productId: joi.number().required(),
+//         qty: joi.number().min(1).required(),
+//         toppingIds: joi.array(),
+//       })
+//       .length(1)
+//       .required(),
+//   });
+
+//   const { error } = schema.validate(req.body);
+//   if (error)
+//     return res.status(400).send({
+//       error,
+//     });
+
+//   try {
+//     const body = req.body;
+//     const newTransaction = await transaction.create({
+//       userId: req.user.id,
+//       status: transactionStatus.WAITING_APPROVE,
+//     });
+
+//     for (let i = 0; i < body.transactionDetails.length; i++) {
+//       const item = body.transactionDetails[i];
+//       const p = await product.findOne({ where: { id: item.productId } });
+//       const t = await topping.findAll({
+//         where: { id: { [Op.in]: item.toppingIds } },
+//       });
+
+//       const totalPrice =
+//         p.price +
+//         t.reduce((a, b) => {
+//           return a + b.price;
+//         }, 0);
+
+//       const newTransactionDetail = await transactionDetail.create({
+//         productId: item.productId,
+//         qty: item.qty,
+//         transactionId: newTransaction.id,
+//         price: totalPrice,
+//       });
+
+//       for (let j = 0; j < item.toppingIds.length; j++) {
+//         await transactionDetailTopping.create({
+//           toppingId: item.toppingIds[j],
+//           transactionDetailId: newTransactionDetail.id,
+//         });
+//       }
+//     }
+//     const getTransaction = await transaction.findOne({
+//       where: {
+//         id: newTransaction.id,
+//       },
+//       attributes: {
+//         exclude: ["createdAt", "updatedAt"],
+//       },
+//       include: [
+//         {
+//           model: user,
+//           as: "user",
+//           attributes: {
+//             exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+//           },
+//         },
+//         {
+//           model: transactionDetail,
+//           as: "transactionDetail",
+//           attributes: {
+//             exclude: ["createdAt", "updatedAt"],
+//           },
+//           include: [
+//             {
+//               model: product,
+//               as: "product",
+//               attributes: {
+//                 exclude: ["createdAt", "updatedAt"],
+//               },
+//             },
+//             {
+//               model: transactionDetailTopping,
+//               as: "transactionDetailTopping",
+//               include: [
+//                 {
+//                   model: topping,
+//                   as: "topping",
+//                   attributes: {
+//                     exclude: ["createdAt", "updatedAt"],
+//                   },
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       ],
+//     });
+
+//     res.status(200).send({
+//       status: "success",
+//       data: {
+//         transaction: {
+//           id: getTransaction.id,
+//           userOrder: getTransaction.user,
+//           status: getTransaction.status,
+//           order: getTransaction.transactionDetail.map((x) => ({
+//             price: x.price,
+//             ...x.product.dataValues,
+//             topping: x.transactionDetailTopping.map((xx) => ({
+//               ...xx.topping.dataValues,
+//             })),
+//           })),
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.send({
+//       status: "failed",
+//       message: "server error",
+//     });
+//   }
+// };
 
 exports.addTransaction = async (req, res) => {
   const schema = joi.object({
     transactionDetails: joi
       .array()
       .items({
-        productId: joi.number().required(),
-        qty: joi.number().min(1).required(),
-        toppingIds: joi.array(),
+        cartId: joi.array().required(),
+        // qty: joi.number().min(1).required(),
+        // totalPrice: joi.number().min(1).required(),
+        // name: joi.string().required(),
+        // email: joi.string().email().required(),
+        // phone: joi.number().required(),
+        // posCode: joi.number().required(),
+        // address: joi.string().required(),
       })
       .length(1)
       .required(),
@@ -31,34 +166,70 @@ exports.addTransaction = async (req, res) => {
 
   try {
     const body = req.body;
+
+    // const cartId = await Cart.findAll({
+    //   where: { userId: req.user.id },
+    //   attributes: {
+    //     exclude: ["createdAt", "updatedAt"],
+    //   },
+    //   include: [
+    //     {
+    //       model: user,
+    //       as: "user",
+    //       attributes: {
+    //         exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+    //       },
+    //     },
+    //     {
+    //       model: product,
+    //       as: "product",
+    //       attributes: {
+    //         exclude: ["createdAt", "updatedAt"],
+    //       },
+    //     },
+    //     {
+    //       model: CartTopping,
+    //       as: "carttopping",
+    //       include: [
+    //         {
+    //           model: topping,
+    //           as: "topping",
+    //           attributes: {
+    //             exclude: ["createdAt", "updatedAt"],
+    //           },
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // });
+
     const newTransaction = await transaction.create({
       userId: req.user.id,
       status: transactionStatus.WAITING_APPROVE,
     });
 
-    for (let i = 0; i < body.transactionDetails.length; i++) {
+    for (let i = 0; i < body.transactionDetails; i++) {
       const item = body.transactionDetails[i];
-      const p = await product.findOne({ where: { id: item.productId } });
-      const t = await topping.findAll({
-        where: { id: { [Op.in]: item.toppingIds } },
+      const cartId = await Cart.findAll({
+        where: { userId: { [Op.in]: item.user } },
       });
 
-      const totalPrice =
-        p.price +
-        t.reduce((a, b) => {
-          return a + b.price;
-        }, 0);
+      // const totalPrice =
+      //   p.price +
+      //   t.reduce((a, b) => {
+      //     return a + b.price;
+      //   }, 0);
 
       const newTransactionDetail = await transactionDetail.create({
-        productId: item.productId,
+        productId: cartId.id,
         qty: item.qty,
         transactionId: newTransaction.id,
-        price: totalPrice,
+        price: 0,
       });
 
-      for (let j = 0; j < item.toppingIds.length; j++) {
+      for (let j = 0; j < item.toppingIds; j++) {
         await transactionDetailTopping.create({
-          toppingId: item.toppingIds[j],
+          toppingId: cartId.carttopping.id[j],
           transactionDetailId: newTransactionDetail.id,
         });
       }
@@ -110,22 +281,9 @@ exports.addTransaction = async (req, res) => {
       ],
     });
 
-    res.send({
+    res.status(200).send({
       status: "success",
-      data: {
-        transaction: {
-          id: getTransaction.id,
-          userOrder: getTransaction.user,
-          status: getTransaction.status,
-          order: getTransaction.transactionDetail.map((x) => ({
-            price: x.price,
-            ...x.product.dataValues,
-            topping: x.transactionDetailTopping.map((xx) => ({
-              ...xx.topping.dataValues,
-            })),
-          })),
-        },
-      },
+      data: getTransaction,
     });
   } catch (error) {
     console.log(error);
@@ -134,16 +292,14 @@ exports.addTransaction = async (req, res) => {
       message: "server error",
     });
   }
-
-  res.status(200).send();
 };
 
 exports.getTransactions = async (req, res) => {
   try {
     const allTransactions = await transaction.findAll({
-      where: {
-        userId: req.params.userid,
-      },
+      // where: {
+      //   userId: req.params.id,
+      // },
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },

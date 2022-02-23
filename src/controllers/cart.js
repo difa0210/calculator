@@ -4,11 +4,11 @@
 // productid 2 toppingids [1,2,3,5,6]
 const joi = require("joi");
 const { Op } = require("sequelize");
-const { user, topping, product, carttopping, cart } = require("../../models");
+const { user, topping, product, CartTopping, Cart } = require("../../models");
 exports.addCart = async (req, res) => {
   const schema = joi.object({
     productId: joi.number().required(),
-    toppingIds: joi.array(),
+    toppingIds: joi.array().required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -18,37 +18,32 @@ exports.addCart = async (req, res) => {
     });
   try {
     const body = req.body;
-    const newCart = await cart.create({
+    const newCart = await Cart.create({
       userId: req.user.id,
+      productId: body.productId,
     });
 
     for (let i = 0; i < body.length; i++) {
-      const item = body[i];
-      const p = await product.findOne({ where: { id: item.productId } });
-      const t = await topping.findAll({
-        where: { id: { [Op.in]: item.toppingIds } },
+      await product.findOne({ where: { id: body.productId } });
+      await topping.findAll({
+        where: { id: { [Op.in]: body.toppingIds } },
       });
+    }
 
-      const totalPrice =
-        p.price +
-        t.reduce((a, b) => {
-          return a + b.price;
-        }, 0);
+    // const totalPrice =
+    //   p.price +
+    //   t.reduce((a, b) => {
+    //     return a + b.price;
+    //   }, 0);
 
-      const newCartDetail = await cart.create({
-        productId: item.productId,
-        price: totalPrice,
+    for (let j = 0; j < body.toppingIds.length; j++) {
+      await CartTopping.create({
+        toppingId: body.toppingIds[j],
         cartId: newCart.id,
       });
-
-      for (let j = 0; j < item.toppingIds.length; j++) {
-        await carttopping.create({
-          toppingId: item.toppingIds[j],
-          cartId: newCartDetail.id,
-        });
-      }
     }
-    const getCart = await cart.findOne({
+
+    const getCart = await Cart.findOne({
       where: {
         id: newCart.id,
       },
@@ -64,33 +59,29 @@ exports.addCart = async (req, res) => {
           },
         },
         {
+          model: product,
+          as: "product",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+        {
+          model: CartTopping,
+          as: "carttopping",
           include: [
             {
-              model: product,
-              as: "product",
+              model: topping,
+              as: "topping",
               attributes: {
                 exclude: ["createdAt", "updatedAt"],
               },
-            },
-            {
-              model: carttopping,
-              as: "carttopping",
-              include: [
-                {
-                  model: topping,
-                  as: "topping",
-                  attributes: {
-                    exclude: ["createdAt", "updatedAt"],
-                  },
-                },
-              ],
             },
           ],
         },
       ],
     });
 
-    res.send({
+    res.status(200).send({
       status: "success",
       data: getCart,
     });
@@ -101,6 +92,129 @@ exports.addCart = async (req, res) => {
       message: "server error",
     });
   }
+};
 
-  res.status(200).send();
+exports.getCarts = async (req, res) => {
+  try {
+    const allCart = await Cart.findAll({
+      where: { userId: req.user.id },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: product,
+          as: "product",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+        {
+          model: CartTopping,
+          as: "carttopping",
+          include: [
+            {
+              model: topping,
+              as: "topping",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(200).send({
+      status: "success",
+      data: allCart,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "server error",
+    });
+  }
+};
+
+exports.getCart = async (req, res) => {
+  try {
+    const allCart = await Cart.findOne({
+      where: { id: req.params.id },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: product,
+          as: "product",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+        {
+          model: CartTopping,
+          as: "carttopping",
+          include: [
+            {
+              model: topping,
+              as: "topping",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(200).send({
+      status: "success",
+      data: allCart,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "server error",
+    });
+  }
+};
+
+exports.deleteCart = async (req, res) => {
+  // code here
+  try {
+    const { id } = req.params;
+    await Cart.destroy({
+      where: {
+        id,
+      },
+    });
+
+    res.status(200).send({
+      status: "success",
+      message: "delete success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: "failed",
+      message: "server error",
+    });
+  }
 };

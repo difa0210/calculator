@@ -10,7 +10,6 @@ const {
   Cart,
   CartTopping,
 } = require("../../models");
-const cart = require("../../models/cart");
 
 const { transactionStatus } = require("../helpers/constans");
 
@@ -165,75 +164,91 @@ exports.addTransaction = async (req, res) => {
     });
 
   try {
-    const body = req.body;
+    const cartId = await Cart.findAll({
+      where: { userId: req.user.id },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: user,
+          as: "user",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "password", "image", "role"],
+          },
+        },
+        {
+          model: product,
+          as: "product",
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+        },
+        {
+          model: CartTopping,
+          as: "carttopping",
+          include: [
+            {
+              model: topping,
+              as: "topping",
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+          ],
+        },
+      ],
+    });
 
-    // const cartId = await Cart.findAll({
-    //   where: { userId: req.user.id },
+    const newTransaction = await transaction.create({
+      userId: cartId.map((x) => x.user.id),
+      status: transactionStatus.WAITING_APPROVE,
+    });
+
+    // for (let i = 0; i < body.transactionDetails.length; i++) {
+    // const cartToppings = await CartTopping.findAll({
+    //   where: { cartId: req.params },
     //   attributes: {
     //     exclude: ["createdAt", "updatedAt"],
     //   },
     //   include: [
     //     {
-    //       model: user,
-    //       as: "user",
-    //       attributes: {
-    //         exclude: ["createdAt", "updatedAt", "password", "image", "role"],
-    //       },
-    //     },
-    //     {
-    //       model: product,
-    //       as: "product",
+    //       model: topping,
+    //       as: "topping",
     //       attributes: {
     //         exclude: ["createdAt", "updatedAt"],
     //       },
     //     },
-    //     {
-    //       model: CartTopping,
-    //       as: "carttopping",
-    //       include: [
-    //         {
-    //           model: topping,
-    //           as: "topping",
-    //           attributes: {
-    //             exclude: ["createdAt", "updatedAt"],
-    //           },
-    //         },
-    //       ],
-    //     },
     //   ],
     // });
 
-    const newTransaction = await transaction.create({
-      userId: req.user.id,
-      status: transactionStatus.WAITING_APPROVE,
+    // const item = body.transactionDetails[i];
+    // const p = cartId.map((x) => x.product.id);
+    // const t = cartId.map((x) =>
+    //   x.carttopping.map((xx) => {
+    //     [Op.in] = xx.topping.id;
+    //   })
+    // );
+
+    // const totalPrice =
+    //   p.price +
+    //   t.reduce((a, b) => {
+    //     return a + b.price;
+    //   }, 0);
+
+    const newTransactionDetail = await transactionDetail.create({
+      transactionId: newTransaction.id,
+      productId: cartId.map((x) => x.product.id),
+      qty: 1,
+      price: 1,
     });
 
-    for (let i = 0; i < body.transactionDetails; i++) {
-      const item = body.transactionDetails[i];
-      const cartId = await Cart.findAll({
-        where: { userId: { [Op.in]: item.user } },
-      });
+    // for (let j = 0; j < body.transactionDetails[i].length; j++) {
+    await transactionDetailTopping.create({
+      toppingId: cartId.map((x) => x.carttopping.map((xx) => xx.topping.id)),
+      transactionDetailId: newTransactionDetail.id,
+    });
 
-      // const totalPrice =
-      //   p.price +
-      //   t.reduce((a, b) => {
-      //     return a + b.price;
-      //   }, 0);
-
-      const newTransactionDetail = await transactionDetail.create({
-        productId: cartId.id,
-        qty: item.qty,
-        transactionId: newTransaction.id,
-        price: 0,
-      });
-
-      for (let j = 0; j < item.toppingIds; j++) {
-        await transactionDetailTopping.create({
-          toppingId: cartId.carttopping.id[j],
-          transactionDetailId: newTransactionDetail.id,
-        });
-      }
-    }
     const getTransaction = await transaction.findOne({
       where: {
         id: newTransaction.id,
@@ -298,7 +313,7 @@ exports.getTransactions = async (req, res) => {
   try {
     const allTransactions = await transaction.findAll({
       // where: {
-      //   userId: req.params.id,
+      //   userId: req.user.id,
       // },
       attributes: {
         exclude: ["createdAt", "updatedAt"],

@@ -29,6 +29,13 @@ module.exports = (sequelize, DataTypes) => {
           name: "cartId",
         },
       });
+
+      // Cart.belongsTo(models.TransactionCart, {
+      //   as: "transactioncart",
+      //   foreignKey: {
+      //     name: "id",
+      //   },
+      // });
     }
   }
   Cart.init(

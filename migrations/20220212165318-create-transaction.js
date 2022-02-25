@@ -17,24 +17,24 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      status: {
-        type: Sequelize.STRING,
-      },
-      name: {
-        type: Sequelize.STRING,
-      },
-      email: {
-        type: Sequelize.STRING,
-      },
-      phone: {
-        type: Sequelize.INTEGER,
-      },
-      posCode: {
-        type: Sequelize.INTEGER,
-      },
-      address: {
-        type: Sequelize.STRING,
-      },
+      // status: {
+      //   type: Sequelize.STRING,
+      // },
+      // name: {
+      //   type: Sequelize.STRING,
+      // },
+      // email: {
+      //   type: Sequelize.STRING,
+      // },
+      // phone: {
+      //   type: Sequelize.INTEGER,
+      // },
+      // posCode: {
+      //   type: Sequelize.INTEGER,
+      // },
+      // address: {
+      //   type: Sequelize.STRING,
+      // },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

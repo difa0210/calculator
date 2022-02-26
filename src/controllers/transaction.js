@@ -10,6 +10,7 @@ const {
   Cart,
   CartTopping,
 } = require("../../models");
+const carttopping = require("../../models/carttopping");
 
 const { transactionStatus } = require("../helpers/constans");
 
@@ -140,21 +141,14 @@ const { transactionStatus } = require("../helpers/constans");
 // };
 
 exports.addTransaction = async (req, res) => {
+  const { cartIds } = req.body;
   const schema = joi.object({
-    transactionDetails: joi
-      .array()
-      .items({
-        cartId: joi.array().required(),
-        // qty: joi.number().min(1).required(),
-        // totalPrice: joi.number().min(1).required(),
-        // name: joi.string().required(),
-        // email: joi.string().email().required(),
-        // phone: joi.number().required(),
-        // posCode: joi.number().required(),
-        // address: joi.string().required(),
-      })
-      .length(1)
-      .required(),
+    cartIds: joi.array().min(1).required(),
+    name: joi.string().required(),
+    email: joi.string().email().required(),
+    phone: joi.number().required(),
+    posCode: joi.number().required(),
+    address: joi.string().required(),
   });
 
   const { error } = schema.validate(req.body);
@@ -164,11 +158,13 @@ exports.addTransaction = async (req, res) => {
     });
 
   try {
-    const cartId = await Cart.findAll({
-      where: { userId: req.user.id },
+    const carts = await Cart.findAll({
+      where: { userId: req.user.id, id: { [Op.in]: cartIds } },
       attributes: {
         exclude: ["createdAt", "updatedAt"],
       },
+      // raw: true,
+      // nest: true,
       include: [
         {
           model: user,
@@ -200,54 +196,56 @@ exports.addTransaction = async (req, res) => {
       ],
     });
 
+    console.log(carts, req.user.id);
+
     const newTransaction = await transaction.create({
-      userId: cartId.map((x) => x.user.id),
+      userId: req.user.id,
       status: transactionStatus.WAITING_APPROVE,
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      posCode: req.body.posCode,
+      address: req.body.address,
     });
 
-    // for (let i = 0; i < body.transactionDetails.length; i++) {
-    // const cartToppings = await CartTopping.findAll({
-    //   where: { cartId: req.params },
-    //   attributes: {
-    //     exclude: ["createdAt", "updatedAt"],
-    //   },
-    //   include: [
-    //     {
-    //       model: topping,
-    //       as: "topping",
-    //       attributes: {
-    //         exclude: ["createdAt", "updatedAt"],
-    //       },
-    //     },
-    //   ],
-    // });
+    let grandTotal = 0;
+    for (let i = 0; i < carts.length; i++) {
+      const item = carts[i];
 
-    // const item = body.transactionDetails[i];
-    // const p = cartId.map((x) => x.product.id);
-    // const t = cartId.map((x) =>
-    //   x.carttopping.map((xx) => {
-    //     [Op.in] = xx.topping.id;
-    //   })
-    // );
+      const cartToppings = await CartTopping.findAll({
+        where: { cartId: item.id },
+      });
 
-    // const totalPrice =
-    //   p.price +
-    //   t.reduce((a, b) => {
-    //     return a + b.price;
-    //   }, 0);
+      const p = await product.findOne({ where: { id: item.productId } });
+      const t = await topping.findAll({
+        where: { id: { [Op.in]: cartToppings.map((x) => x.toppingId) } },
+      });
 
-    const newTransactionDetail = await transactionDetail.create({
-      transactionId: newTransaction.id,
-      productId: cartId.map((x) => x.product.id),
-      qty: 1,
-      price: 1,
-    });
+      const totalPrice =
+        p.price +
+        t.reduce((a, b) => {
+          return a + b.price;
+        }, 0);
+      grandTotal += totalPrice;
+      const newTransactionDetail = await transactionDetail.create({
+        productId: item.productId,
+        qty: item.qty,
+        transactionId: newTransaction.id,
+        price: totalPrice,
+      });
 
-    // for (let j = 0; j < body.transactionDetails[i].length; j++) {
-    await transactionDetailTopping.create({
-      toppingId: cartId.map((x) => x.carttopping.map((xx) => xx.topping.id)),
-      transactionDetailId: newTransactionDetail.id,
-    });
+      for (let j = 0; j < cartToppings.length; j++) {
+        await transactionDetailTopping.create({
+          toppingId: cartToppings[j].toppingId,
+          transactionDetailId: newTransactionDetail.id,
+        });
+      }
+    }
+
+    await transaction.update(
+      { totalPrice: grandTotal },
+      { where: { id: newTransaction.id } }
+    );
 
     const getTransaction = await transaction.findOne({
       where: {
@@ -296,6 +294,7 @@ exports.addTransaction = async (req, res) => {
       ],
     });
 
+    await Cart.destroy({ where: { id: cartIds } });
     res.status(200).send({
       status: "success",
       data: getTransaction,
@@ -368,6 +367,12 @@ exports.getTransactions = async (req, res) => {
           Id: item.userId,
           userOrder: item.user,
           status: item.status,
+          name: item.name,
+          email: item.email,
+          phone: item.phone,
+          posCode: item.posCode,
+          address: item.address,
+
           order: item.transactionDetail.map((x) => ({
             ...x.product.dataValues,
             topping: x.transactionDetailTopping.map((xx) => ({
@@ -439,20 +444,7 @@ exports.getTransaction = async (req, res) => {
 
     res.status(201).send({
       status: "success",
-      data: {
-        transaction: {
-          id: Transaction.id,
-          userOrder: Transaction.user,
-          status: Transaction.status,
-          order: Transaction.transactionDetail.map((x) => ({
-            ...x.product.dataValues,
-            topping: x.transactionDetailTopping.map((xx) => ({
-              ...xx.topping.dataValues,
-            })),
-            totalPrice: x.price,
-          })),
-        },
-      },
+      data: Transaction,
       message: "get transaction success",
     });
   } catch (error) {

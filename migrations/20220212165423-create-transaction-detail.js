@@ -47,9 +47,3 @@ module.exports = {
     await queryInterface.dropTable("transactionDetails");
   },
 };
-
-cart;
-id, userId, productId;
-
-carttopping;
-id, cartId, toppingId;

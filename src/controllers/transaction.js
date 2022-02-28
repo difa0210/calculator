@@ -362,9 +362,10 @@ exports.getTransactions = async (req, res) => {
 
     res.status(201).send({
       status: "success",
+      // data: allTransactions,
       data: {
         transaction: allTransactions.map((item) => ({
-          Id: item.userId,
+          Id: item.id,
           userOrder: item.user,
           status: item.status,
           name: item.name,

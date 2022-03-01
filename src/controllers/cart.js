@@ -18,23 +18,23 @@ exports.addCart = async (req, res) => {
     });
   try {
     const body = req.body;
+
+    const p = await product.findOne({ where: { id: body.productId } });
+    const t = await topping.findAll({
+      where: { id: { [Op.in]: body.toppingIds } },
+    });
+
+    const totalPrice =
+      p.price +
+      t.reduce((a, b) => {
+        return a + b.price;
+      }, 0);
+
     const newCart = await Cart.create({
       userId: req.user.id,
       productId: body.productId,
+      price: totalPrice,
     });
-
-    for (let i = 0; i < body.length; i++) {
-      await product.findOne({ where: { id: body.productId } });
-      await topping.findAll({
-        where: { id: { [Op.in]: body.toppingIds } },
-      });
-    }
-
-    // const totalPrice =
-    //   p.price +
-    //   t.reduce((a, b) => {
-    //     return a + b.price;
-    //   }, 0);
 
     for (let j = 0; j < body.toppingIds.length; j++) {
       await CartTopping.create({

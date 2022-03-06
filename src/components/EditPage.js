@@ -20,22 +20,33 @@ import { useTheme } from "native-base";
 export default function EditPage({ route, navigation }) {
   const theme = useTheme();
   const { id } = route.params;
+  const [isLoading, setIsLoading] = React.useState(false);
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
 
   const handleUpdate = async () => {
+    setIsLoading(true);
     const data = { title, content };
     API.patch(`/list/${id}`, data)
       .then((res) => {
         console.log(res);
         setTitle("");
         setContent("");
+        setIsLoading(false);
       })
       .catch((err) => console.log(err));
+    setIsLoading(false);
   };
 
   return (
-    <Box flex={1} alignItems="center" bg="primary.14">
+    <Box
+      flex={1}
+      alignItems="center"
+      bg="primary.14"
+      refreshControl={
+        <RefreshControl refreshing={isLoading} onRefresh={(title, content)} />
+      }
+    >
       <Box w="100%" padding={5}>
         <Text
           fontSize={25}
@@ -54,11 +65,12 @@ export default function EditPage({ route, navigation }) {
                 Title
               </Text>
             </FormControl.Label>
+
             <TextInput
               style={{ borderRadius: 2, padding: 4 }}
               borderWidth={0}
               type="text"
-              placeholder="input Content"
+              placeholder={route.params.title}
               color="black"
               backgroundColor={theme.colors.primary["12"]}
               value={title}
@@ -83,7 +95,7 @@ export default function EditPage({ route, navigation }) {
               style={{ borderRadius: 2, padding: 4 }}
               borderWidth={0}
               type="text"
-              placeholder="input Content"
+              placeholder={route.params.content}
               color="black"
               backgroundColor={theme.colors.primary["12"]}
               value={content}

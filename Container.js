@@ -56,7 +56,6 @@ function MyTab() {
   );
 }
 export default function Container() {
-  const theme = useTheme();
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -84,30 +83,30 @@ export default function Container() {
         <Stack.Screen
           name="AddPage"
           component={AddPage}
-          options={{
-            title: "AddPage",
-          }}
+          // options={{
+          //   animationEnabled: false,
+          //   headerBackTitle: false,
+          //   headerStyle: {
+          //     backgroundColor: theme.colors.primary["12"],
+          //     height: 25,
+          //   },
+          // }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="DetailPage"
           component={DetailPage}
-          options={{
-            title: "DetailPage",
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="EditPage"
           component={EditPage}
-          options={{
-            title: "EditPage",
-          }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="DeletePage"
           component={DeletePage}
-          options={{
-            title: "DeletePage",
-          }}
+          options={{ headerShown: false, animationEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

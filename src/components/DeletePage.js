@@ -1,57 +1,116 @@
 import React, { useState } from "react";
-import { Alert, Modal, StyleSheet, Text, Pressable, View } from "react-native";
+import {
+  RefreshControl,
+  Alert,
+  Modal,
+  StyleSheet,
+  Text,
+  Pressable,
+  View,
+} from "react-native";
+import { useTheme } from "native-base";
 import { API } from "../../config/api";
 
 const DeletePage = ({ route, navigation }) => {
+  const theme = useTheme();
+  const [isLoading, setIsLoading] = React.useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { id } = route.params;
   const handleDelete = async () => {
+    setIsLoading(true);
     API.delete(`/list/${id}`)
       .then((res) => {
         console.log(res);
+        setIsLoading(false);
       })
       .catch((error) => {
         console.log(error);
+        setIsLoading(false);
       });
   };
 
   return (
-    <View style={styles.centeredView}>
+    <View
+      style={styles.centeredView}
+      refreshControl={
+        <RefreshControl refreshing={isLoading} onRefresh={DeletePage} />
+      }
+    >
       <Modal
         transparent={true}
         onRequestClose={() => {
-          setModalVisible(!modalVisible), navigation.navigate("ToDo");
+          setModalVisible(!modalVisible), navigation.goBack("ToDo");
         }}
       >
-        <View style={styles.modalView}>
-          <Text style={styles.textStyle}>Delete Data</Text>
+        <View
+          style={{
+            backgroundColor: theme.colors.primary["12"],
+            margin: 25,
+            padding: 15,
+            justifyContent: "center",
+            borderRadius: 10,
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
+        >
           <Text style={styles.textStyle}>
             Are you sure you want to delete this Page?
           </Text>
-          <Text style={styles.modalText}>
+          <Text style={{ marginTop: 15 }}>
             <Pressable
+              style={{
+                marginHorizontal: 10,
+                paddingVertical: 6,
+                paddingHorizontal: 20,
+                justifyContent: "center",
+                borderRadius: 5,
+                alignItems: "center",
+                backgroundColor: theme.colors.primary["14"],
+              }}
               onPress={() => {
                 setModalVisible(!modalVisible),
-                  navigation.navigate("ToDo"),
+                  navigation.goBack("ToDo"),
                   handleDelete(id);
               }}
-              onRequestClose={() => {
-                setModalVisible(!modalVisible);
-              }}
-              style={[styles.button]}
             >
-              <Text>Yes</Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  color: theme.colors.primary["12"],
+                }}
+              >
+                Yes
+              </Text>
             </Pressable>
             <Pressable
+              style={{
+                marginHorizontal: 10,
+                paddingVertical: 6,
+                paddingHorizontal: 20,
+                justifyContent: "center",
+                borderRadius: 5,
+                alignItems: "center",
+                backgroundColor: "white",
+              }}
               onPress={() => {
-                setModalVisible(!modalVisible), navigation.navigate("ToDo");
+                setModalVisible(!modalVisible), navigation.goBack("ToDo");
               }}
-              onRequestClose={() => {
-                setModalVisible(!modalVisible);
-              }}
-              style={[styles.button, styles.buttonClose]}
             >
-              <Text>No</Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  color: "black",
+                }}
+              >
+                No
+              </Text>
             </Pressable>
           </Text>
         </View>
@@ -59,41 +118,6 @@ const DeletePage = ({ route, navigation }) => {
     </View>
   );
 };
-//     const App = () => {
-//   const [modalVisible, setModalVisible] = useState(false);
-
-//   return (
-//     <View style={styles.centeredView}>
-//       <Modal
-//         animationType="slide"
-//         transparent={true}
-//         visible={modalVisible}
-//         onRequestClose={() => {
-//           Alert.alert("Modal has been closed.");
-//           setModalVisible(!modalVisible);
-//         }}
-//       >
-//         <View style={styles.centeredView}>
-//           <View style={styles.modalView}>
-//             <Text style={styles.modalText}>Hello World!</Text>
-//             <Pressable
-//               style={[styles.button, styles.buttonClose]}
-//               onPress={() => setModalVisible(!modalVisible)}
-//             >
-//               <Text style={styles.textStyle}>Hide Modal</Text>
-//             </Pressable>
-//           </View>
-//         </View>
-//       </Modal>
-//       <Pressable
-//         style={[styles.button, styles.buttonOpen]}
-//         onPress={() => setModalVisible(true)}
-//       >
-//         <Text style={styles.textStyle}>Show Modal</Text>
-//       </Pressable>
-//     </View>
-//   );
-// };
 
 const styles = StyleSheet.create({
   centeredView: {
@@ -102,39 +126,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 22,
   },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonOpen: {
-    backgroundColor: "#F194FF",
-  },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
+
   textStyle: {
     color: "black",
     fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalText: {
-    marginBottom: 15,
     textAlign: "center",
   },
 });

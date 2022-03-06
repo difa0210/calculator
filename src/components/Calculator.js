@@ -1,30 +1,9 @@
 import * as React from "react";
 import { Text, Box, VStack, HStack, Center, Input, Button } from "native-base";
-import { Vibration } from "react-native";
 
 export default function Calculator() {
   const [value, setValue] = React.useState("");
-  const [lastValue, seLastValue] = React.useState("");
-  const handleChange = (text) => setValue(text);
-
-  const buttons = [
-    "Clear",
-    "/",
-    "*",
-    "-",
-    "+",
-    "=",
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-  ];
+  const [lastValue, setLastValue] = React.useState("");
 
   function Calculate() {
     let lastArr = value[value.length - 1];
@@ -51,7 +30,6 @@ export default function Calculator() {
       buttonPress === "*" ||
       buttonPress === "/"
     ) {
-      Vibration.vibrate(35);
       setValue(value + buttonPress);
       return;
     } else if (
@@ -66,16 +44,17 @@ export default function Calculator() {
       buttonPress === 9 ||
       buttonPress === 0
     ) {
-      Vibration.vibrate(35);
     }
     switch (buttonPress) {
-      case "Clear":
-        Vibration.vibrate(35);
+      case "Del":
         setValue(value.substring(0, value.length - 1));
         return;
+      case "C":
+        setLastValue("");
+        setValue("");
+        return;
       case "=":
-        Vibration.vibrate(35);
-        setValue(value + "=");
+        setLastValue(value + "=");
         Calculate();
         return;
     }
@@ -84,26 +63,14 @@ export default function Calculator() {
 
   return (
     <Box bg="primary.13" flex={1} alignItems="center" justifyContent="center">
-      <Text
-        color="primary.14"
-        fontFamily="body"
-        fontWeight={400}
-        fontStyle="normal"
-        fontSize={30}
-        marginBottom={8}
-      >
-        Hello Calculator
+      <Text fontSize={25} color="primary.1">
+        {lastValue}
       </Text>
-
-      <Input
-        bg="white"
-        value={value}
-        w="63%"
-        onChangeText={handleChange}
-        marginBottom={5}
-        borderWidth={0}
-        color="primary.1"
-      />
+      <Box bg="primary.12" rounded={5} marginBottom={5} w="63%">
+        <Text fontSize={25} color="primary.1" textAlign="center">
+          {value}
+        </Text>
+      </Box>
 
       <HStack space={3}>
         <VStack space={3} marginBottom={5}>
@@ -112,7 +79,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("7")}
+            onPress={() => {
+              handleInput(7);
+            }}
           >
             <Text fontSize={25}>7</Text>
           </Button>
@@ -121,7 +90,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("4")}
+            onPress={() => {
+              handleInput(4);
+            }}
           >
             <Text fontSize={25}>4</Text>
           </Button>
@@ -130,7 +101,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("1")}
+            onPress={() => {
+              handleInput(1);
+            }}
           >
             <Text fontSize={25}>1</Text>
           </Button>
@@ -139,7 +112,9 @@ export default function Calculator() {
             bg="grey"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("%")}
+            onPress={() => {
+              handleInput("%");
+            }}
           >
             <Text fontSize={25}>%</Text>
           </Button>
@@ -150,7 +125,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("8")}
+            onPress={() => {
+              handleInput(8);
+            }}
           >
             <Text fontSize={25}>8</Text>
           </Button>
@@ -159,7 +136,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("5")}
+            onPress={() => {
+              handleInput(5);
+            }}
           >
             <Text fontSize={25}>5</Text>
           </Button>
@@ -168,7 +147,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("2")}
+            onPress={() => {
+              handleInput(2);
+            }}
           >
             <Text fontSize={25}>2</Text>
           </Button>
@@ -177,7 +158,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("0")}
+            onPress={() => {
+              handleInput(0);
+            }}
           >
             <Text fontSize={25}>0</Text>
           </Button>
@@ -188,7 +171,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("9")}
+            onPress={() => {
+              handleInput(9);
+            }}
           >
             <Text fontSize={25}>9</Text>
           </Button>
@@ -197,7 +182,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("6")}
+            onPress={() => {
+              handleInput(6);
+            }}
           >
             <Text fontSize={25}>6</Text>
           </Button>
@@ -206,7 +193,9 @@ export default function Calculator() {
             bg="primary.11"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("3")}
+            onPress={() => {
+              handleInput(3);
+            }}
           >
             <Text fontSize={25}>3</Text>
           </Button>
@@ -215,7 +204,9 @@ export default function Calculator() {
             bg="grey"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("/")}
+            onPress={() => {
+              handleInput("/");
+            }}
           >
             <Text fontSize={25}>/</Text>
           </Button>
@@ -226,7 +217,9 @@ export default function Calculator() {
             bg="grey"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("*")}
+            onPress={() => {
+              handleInput("*");
+            }}
           >
             <Text fontSize={25}>*</Text>
           </Button>
@@ -235,7 +228,9 @@ export default function Calculator() {
             bg="grey"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("-")}
+            onPress={() => {
+              handleInput("-");
+            }}
           >
             <Text fontSize={25}>-</Text>
           </Button>
@@ -244,7 +239,9 @@ export default function Calculator() {
             bg="grey"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("+")}
+            onPress={() => {
+              handleInput("+");
+            }}
           >
             <Text fontSize={25}>+</Text>
           </Button>
@@ -253,19 +250,32 @@ export default function Calculator() {
             bg="primary.14"
             rounded={6}
             textAlign="center"
-            onPress={() => console.log("=")}
+            onPress={() => {
+              handleInput("=");
+            }}
           >
             <Text fontSize={25}>=</Text>
           </Button>
         </VStack>
       </HStack>
-      <HStack>
+      <HStack space={3}>
         <Button
           bg="primary.14"
           rounded={6}
-          onPress={() => console.log("Clear")}
+          onPress={() => {
+            handleInput("C");
+          }}
         >
-          <Text fontSize={20}>Clear</Text>
+          <Text fontSize={20}>C</Text>
+        </Button>
+        <Button
+          bg="primary.14"
+          rounded={6}
+          onPress={() => {
+            handleInput("Del");
+          }}
+        >
+          <Text fontSize={20}>Del</Text>
         </Button>
       </HStack>
     </Box>

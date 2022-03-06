@@ -5,7 +5,17 @@ import {
   Montserrat_500Medium_Italic,
 } from "@expo-google-fonts/montserrat";
 import Container from "./Container";
-import { extendTheme, NativeBaseProvider } from "native-base";
+import {
+  extendTheme,
+  NativeBaseProvider,
+  Text,
+  Box,
+  VStack,
+  HStack,
+  Center,
+  Input,
+  Button,
+} from "native-base";
 import AppLoading from "expo-app-loading";
 
 export default function App() {
